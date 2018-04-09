@@ -12,15 +12,18 @@
         android:id="@+id/txtContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
+        android:id="@+id/linearLayout2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -28,44 +31,46 @@
 
         <Button
             android:id="@+id/btnPrevious"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/previous"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/previous" />
 
         <Button
             android:id="@+id/btnPlay"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/bofang"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/bofang" />
 
         <Button
             android:id="@+id/btnNext"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/next"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/next" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
+        android:layout_marginBottom="8dp"
         android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
 
         <Button
             android:id="@+id/btnBeginReduce"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/reduce"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:text="@string/reduce" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -75,19 +80,19 @@
 
         <Button
             android:id="@+id/btnBeginAdd"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/add"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/add" />
 
         <Button
             android:id="@+id/btnEndReduce"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/reduce"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/reduce" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -97,11 +102,12 @@
 
         <Button
             android:id="@+id/btnEndAdd"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/add"
-            style="?android:attr/buttonBarButtonStyle"/>
+            android:text="@string/add" />
     </LinearLayout>
+
 
 </android.support.constraint.ConstraintLayout>
