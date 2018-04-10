@@ -5,8 +5,10 @@
     <string name="begin">开始</string>
     <string name="next">下一句</string>
     <string name="previous">上一句</string>
-    <string name="bofang">播放</string>
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
     <string name="reduce"><![CDATA[<<-]]></string>
     <string name="add"><![CDATA[+>>]]></string>
     <string name="action_open">打开文件</string>
+    <string name="welcome">welcome.mp3</string>
 </resources>
