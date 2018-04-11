@@ -1,0 +1,14 @@
+    //时间处理函数
+    private int timeHandler(String string) {  //将00:00.00的时间表示方式转换为毫秒单位的时间
+        string = string.replace(".", ":");  //转换成00:00:00
+        String timeData[] = string.split(":");  //分离成一个三位的数组
+        int minute = Integer.parseInt(timeData[0]);  //提取分钟
+        int second = Integer.parseInt(timeData[1]);  //提取秒
+        int millisecond = Integer.parseInt(timeData[2]);  //提取毫秒
+        if (timeData[2].length() == 1)  //针对00:00.0这种情况处理
+            millisecond *= 100;
+        else if (timeData[2].length() == 2)  //针对00:00.00这种情况处理
+            millisecond *= 10;
+
+        return (minute * 60 + second) * 1000 + millisecond;  //返回毫秒为单位的时间
+    }

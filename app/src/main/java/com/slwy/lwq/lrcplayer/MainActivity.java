@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity implements
         MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener {
 
-    Uri uri;      //声音文件的 Uri
+    Uri mp3Uri, lrcUri;      //声音文件的 Uri
     TextView txtContent;
     Button btnPlay;
     MediaPlayer mediaPlayer;
@@ -38,7 +38,9 @@ public class MainActivity extends AppCompatActivity implements
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//设置屏幕直向显示
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//设置屏幕不进入休眠
 
-        uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
+        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
+                getPackageName() + "/" + R.raw.welcome);
+        lrcUri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
                 getPackageName() + "/" + R.raw.welcome);
 
         txtContent = findViewById(R.id.txtContent);
@@ -121,8 +123,8 @@ public class MainActivity extends AppCompatActivity implements
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {  //回调方法
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK) {
-            uri = convertUri(data.getData());
-            txtContent.setText(uri.getLastPathSegment ());
+            mp3Uri = convertUri(data.getData());
+            txtContent.setText(mp3Uri.getLastPathSegment ());
             prepareMusic();
         }
     }
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements
         btnPlay.setText(R.string.play);   //按钮改"播放"
         try {
             mediaPlayer.reset();  //复位，开始播放前都这样处理
-            mediaPlayer.setDataSource(this, uri);
+            mediaPlayer.setDataSource(this, mp3Uri);
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
             Toast.makeText(this, "错误:" + e.toString(), Toast.LENGTH_SHORT).show();
@@ -183,5 +185,6 @@ public class MainActivity extends AppCompatActivity implements
         if(pos > len) pos = len;
         mediaPlayer.seekTo(pos);
     }
+
 
 }
