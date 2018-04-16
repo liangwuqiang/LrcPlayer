@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -28,6 +29,10 @@ public class MainActivity extends AppCompatActivity implements
     Button btnPlay;
     MediaPlayer mediaPlayer;
 
+    String path = Environment.getExternalStorageDirectory().getPath();
+    String filename = path + "/205.lrc";
+    LrcUtil lrc = new LrcUtil(filename);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,12 +46,17 @@ public class MainActivity extends AppCompatActivity implements
         mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
                 getPackageName() + "/" + R.raw.welcome);
         lrcUri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
-                getPackageName() + "/" + R.raw.welcome);
+                getPackageName() + "/" + R.raw.panda);
 
         txtContent = findViewById(R.id.txtContent);
         btnPlay = findViewById(R.id.btnPlay);
 
-        txtContent.setText(R.string.welcome);
+//        String path = Environment.getExternalStorageDirectory().getPath();
+//        String filename = path + "/205.lrc";
+//        LrcUtil lrc = new LrcUtil(filename);
+        String text = lrc.reLocation(0);
+
+        txtContent.setText(text);
         btnPlay.setText(R.string.pause);
 
         mediaPlayer = new MediaPlayer();           //创建 MediaPlayer 对象
@@ -116,7 +126,8 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onPick() {  //菜单点击事件
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
-        it.setType("audio/*");     //音乐类型
+//        it.setType("audio/*");     //音乐类型
+        it.setType("file/*");     //音乐类型
         startActivityForResult(it, 100);
     }
 
@@ -124,7 +135,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK) {
             mp3Uri = convertUri(data.getData());
-            txtContent.setText(mp3Uri.getLastPathSegment ());
+//            txtContent.setText(mp3Uri.getLastPathSegment ());
+//            txtContent.setText(data.getData().toString());
             prepareMusic();
         }
     }
@@ -170,20 +182,28 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onMpBackward(View v) {
-        if(!mediaPlayer.isPlaying()) return;
-        int pos = mediaPlayer.getCurrentPosition();
-        pos -= 10000;  //倒退 10 秒 (10000ms)
-        if(pos <0) pos = 0;
-        mediaPlayer.seekTo(pos);
+//        if(!mediaPlayer.isPlaying()) return;
+//        int pos = mediaPlayer.getCurrentPosition();
+//        pos -= 10000;  //倒退 10 秒 (10000ms)
+//        if(pos <0) pos = 0;
+//        mediaPlayer.seekTo(pos);
+//
+
+
+        String text = lrc.reLocation(-1);
+        txtContent.setText(text);
     }
 
     public void onMpForward(View v) {
-        if(!mediaPlayer.isPlaying()) return;
-        int len = mediaPlayer.getDuration();
-        int pos = mediaPlayer.getCurrentPosition();
-        pos += 10000;  //前进 10 秒 (10000ms)
-        if(pos > len) pos = len;
-        mediaPlayer.seekTo(pos);
+//        if(!mediaPlayer.isPlaying()) return;
+//        int len = mediaPlayer.getDuration();
+//        int pos = mediaPlayer.getCurrentPosition();
+//        pos += 10000;  //前进 10 秒 (10000ms)
+//        if(pos > len) pos = len;
+//        mediaPlayer.seekTo(pos);
+
+        String text = lrc.reLocation(1);
+        txtContent.setText(text);
     }
 
 

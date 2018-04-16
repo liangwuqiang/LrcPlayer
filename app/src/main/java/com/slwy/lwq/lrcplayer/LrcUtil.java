@@ -1,116 +1,121 @@
 package com.slwy.lwq.lrcplayer;
 
-import android.text.TextUtils;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LrcUtil {
 
-    private List<Integer> mTimeList = new ArrayList<>();
-    private List<String> mWords = new ArrayList<>();
-    private Iterator<Integer> mTimeIterator;
-    private Iterator<String> mWordIterator;
+//    String filename = "D:\\panda.lrc";
+    String filename = "/storage/sdcard0/205.lrc";
+    int curLocation = 0;  //当前位置
+    int maxRecordNum = 0;  //最大记录个数
+    private List<LrcRecord> recordList = new ArrayList<>();
 
-    public LrcUtil(File lrcFile) throws FileNotFoundException {
-        readLrcFile(lrcFile);
-    }
+    public LrcUtil(String filename) { openLrcFile(filename); }  //类的构造方法
 
-    public boolean hasTime() {
-        return mTimeIterator.hasNext();
-    }
-
-    public boolean hasWord() {
-        return mWordIterator.hasNext();
-    }
-
-    public int getTime() {
-        return mTimeIterator.next();
-    }
-
-    public String getWord() {
-        return mWordIterator.next();
-    }
-
-    //处理歌词文件
-    private void readLrcFile(File file) throws FileNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        InputStreamReader inputStreamReader;
-        try {
-            inputStreamReader = new InputStreamReader(
-                    fileInputStream, "utf-8");
-            readLrcStream(inputStreamReader);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+    public String reLocation(int inc){
+        if(inc == 0){
+            curLocation = 0;
         }
+        if (inc == -1){
+            curLocation = curLocation -1;
+            if (curLocation < 0) curLocation = maxRecordNum -1 ;
+        }
+        if (inc == 1){
+            curLocation = curLocation + 1;
+            if (curLocation > maxRecordNum -1) curLocation = 0;
+        }
+        return seekTo(curLocation).text;
+//        return  String.valueOf(maxRecordNum);
     }
 
-    private void readLrcStream(InputStreamReader inputStreamReader) {
-        BufferedReader bufferedReader = new BufferedReader(
-                inputStreamReader);
-        String s;
+
+    //以特定格式打开文件
+    private void openLrcFile(String filename){  //读取lrc文件
         try {
-            while ((s = bufferedReader.readLine()) != null) {
-                addTimeToList(s);
-                if ((s.contains("[ar:")) || (s.contains("[ti:")) || (s.contains("[by:"))
-                        || (s.contains("[al:"))) {
-                    continue;
-                } else {
-                    if (TextUtils.isEmpty(s))
-                        continue;
-                    int startIndex = s.indexOf("[");
-                    int endIndex = s.indexOf("]");
-                    if (startIndex >= 0 && endIndex >= 0) {
-                        String ss = s.substring(startIndex, endIndex + 1);
-                        s = s.replace(ss, "");
-                    } else continue;
-                }
-                mWords.add(s);
-            }
-            mTimeIterator = mTimeList.iterator();
-            mWordIterator = mWords.iterator();
+            File lrcFile = new File(filename);
+            FileInputStream fileInputStream = new FileInputStream(lrcFile);  //将文件导入为文件输入流
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream,"utf-8");
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);  //转成字节流
+
+            readLrcFile(bufferedReader);
+
             bufferedReader.close();
             inputStreamReader.close();
+            fileInputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
-            mWords.add("没有读取到歌词");
         }
     }
 
-    private void addTimeToList(String string) {
-        Matcher matcher = Pattern.compile(
-                "\\[\\d{1,2}:\\d{1,2}([\\.:]\\d{1,2})?\\]").matcher(string);
-        if (matcher.find()) {
-            String str = matcher.group();
-            mTimeList.add(timeHandler(str.substring(1,
-                    str.length() - 1)));
+    //对文件逐行扫描
+    private void readLrcFile(BufferedReader bufferedReader) {  //将文件内容导入到一个数据列表中
+        String regex = "\\[\\d\\d:\\d\\d.\\d\\d]"; // 正则表达式
+        Pattern pattern = Pattern.compile(regex);
+        String lineStr;  //用于存储行数据
+        int timeTemp = 50000;
+        Stack<Map<Integer, String>> mapStack = new Stack<>();  //用于保存lrc存入的数据
+        Stack<LrcRecord> listStack = new Stack<>();  //用于重新构造新的数据
+        try {
+            while ((lineStr = bufferedReader.readLine()) != null) {  //将lrc文件内容推送到一个栈中
+                Matcher matcher = pattern.matcher(lineStr);
+                if(matcher.find()){
+                    int timeInt = timeToInt(matcher.group().substring(1, 9));
+                    String textStr = lineStr.substring(matcher.end());
+                    Map<Integer, String> map = new HashMap<>();
+                    map.put(timeInt, textStr);
+                    mapStack.push(map);
+                }
+            }
+            while(!mapStack.empty()){  //重新构造一个新栈，中间层，后进先出
+                for (Map.Entry<Integer, String> entry : mapStack.pop().entrySet()) {
+                    LrcRecord lrcRecord = new LrcRecord();
+                    lrcRecord.display = true;
+                    lrcRecord.beginTime = entry.getKey();
+                    lrcRecord.endTime = timeTemp;
+                    lrcRecord.text = entry.getValue();
+                    listStack.push(lrcRecord);
+                    timeTemp = entry.getKey();
+                }
+            }
+            while(!listStack.empty()){  //使用中间层来构造一个数据列表，全局的，目的是便于修改数据
+                recordList.add(listStack.pop());
+            }
+            maxRecordNum = recordList.size();
+        } catch (IOException e) {  //异常处理
+            e.printStackTrace();
         }
     }
 
-    // 分离出时间
-    private int timeHandler(String string) {
-        string = string.replace(".", ":");
-        String timeData[] = string.split(":");
-        // 分离出分、秒并转换为整型
-        int minute = Integer.parseInt(timeData[0]);
-        int second = Integer.parseInt(timeData[1]);
-        int millisecond = Integer.parseInt(timeData[2]);
-        if (timeData[2].length() == 1)
-            millisecond *= 100;
-        else if (timeData[2].length() == 2)
-            millisecond *= 10;
-
-        // 计算上一行与下一行的时间转换为毫秒数
-        return (minute * 60 + second) * 1000 + millisecond;
+    //将字符串表示的时间转换为数字表示的时间
+    private int timeToInt(String string) {  //将00:00.00的时间表示方式转换为毫秒单位的时间
+        string = string.replace(".", ":");  //转换成00:00:00
+        String timeData[] = string.split(":");  //分离成三个数的一个数组
+        int minute = Integer.parseInt(timeData[0]);  //提取分钟
+        int second = Integer.parseInt(timeData[1]);  //提取秒钟
+        int millisecond = Integer.parseInt(timeData[2]) * 10;  //提取毫秒，这里只显示两位
+        return (minute * 60 + second) * 1000 + millisecond;  //返回毫秒为单位的时间
     }
+
+    private LrcRecord seekTo(int index){
+        return recordList.get(index);
+//        return "seekTo";
+//        LrcRecord lrcRecord = new LrcRecord();
+//        lrcRecord.display = true;
+//        lrcRecord.beginTime = 0;
+//        lrcRecord.endTime = 1;
+//        lrcRecord.text = "aaaaa";
+//        return lrcRecord;
+    }
+
 }
