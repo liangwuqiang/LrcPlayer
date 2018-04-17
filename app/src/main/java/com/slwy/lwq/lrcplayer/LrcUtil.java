@@ -15,15 +15,20 @@ import java.util.regex.Pattern;
 
 public class LrcUtil {
 
-//    String filename = "D:\\panda.lrc";
-    String filename = "/storage/sdcard0/205.lrc";
-    int curLocation = 0;  //当前位置
-    int maxRecordNum = 0;  //最大记录个数
+//    样本  打开手机目录下的文件
+//    String filename = "/storage/sdcard0/205.lrc";
+//    private String path = Environment.getExternalStorageDirectory().getPath();
+//    String filename = path + "/205.lrc";
+
+    private int curLocation = 0;  //当前位置
+    private int maxRecordNum = 0;  //最大记录个数
     private List<LrcRecord> recordList = new ArrayList<>();
 
-    public LrcUtil(String filename) { openLrcFile(filename); }  //类的构造方法
+    public void openFile(String filename) {
+        openLrcFile(filename);
+    }
 
-    public String reLocation(int inc){
+    public LrcRecord reLocation(int inc){
         if(inc == 0){
             curLocation = 0;
         }
@@ -35,8 +40,7 @@ public class LrcUtil {
             curLocation = curLocation + 1;
             if (curLocation > maxRecordNum -1) curLocation = 0;
         }
-        return seekTo(curLocation).text;
-//        return  String.valueOf(maxRecordNum);
+        return seekTo(curLocation);
     }
 
 
@@ -97,7 +101,7 @@ public class LrcUtil {
         }
     }
 
-    //将字符串表示的时间转换为数字表示的时间
+    //字符串时间 --> 数字时间
     private int timeToInt(String string) {  //将00:00.00的时间表示方式转换为毫秒单位的时间
         string = string.replace(".", ":");  //转换成00:00:00
         String timeData[] = string.split(":");  //分离成三个数的一个数组
@@ -109,13 +113,6 @@ public class LrcUtil {
 
     private LrcRecord seekTo(int index){
         return recordList.get(index);
-//        return "seekTo";
-//        LrcRecord lrcRecord = new LrcRecord();
-//        lrcRecord.display = true;
-//        lrcRecord.beginTime = 0;
-//        lrcRecord.endTime = 1;
-//        lrcRecord.text = "aaaaa";
-//        return lrcRecord;
     }
 
 }
