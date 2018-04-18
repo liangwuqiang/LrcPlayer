@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements
         recordSkip();
     }
 
-    public void onMpForward(View v) {
+    public void onMpForward() {
         lrcRecord = lrcUtil.reLocation(1);
         recordSkip();
     }
@@ -216,9 +216,14 @@ public class MainActivity extends AppCompatActivity implements
             task.cancel();
         }
         task = new myTimerTask();
-        timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
+
         String text= "延迟：" + String.valueOf(lrcRecord.endTime-lrcRecord.beginTime) + "秒";
         txtTest.setText(text);
+        for (int i = 0; i < 5; i++){  //循环5次
+            timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
+        }
+        onMpForward();
+
     }
 
     //数字时间 --> 字符串时间  例如：mm:ss.ms
