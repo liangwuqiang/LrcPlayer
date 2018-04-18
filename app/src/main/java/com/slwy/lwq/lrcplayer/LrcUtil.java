@@ -16,9 +16,9 @@ import java.util.regex.Pattern;
 public class LrcUtil {
 
 //    样本  打开手机目录下的文件
-//    String filename = "/storage/sdcard0/205.lrc";
+//    String filename = "/storage/sdcard0/205.lrcUtil";
 //    private String path = Environment.getExternalStorageDirectory().getPath();
-//    String filename = path + "/205.lrc";
+//    String filename = path + "/205.lrcUtil";
 
     private int curLocation = 0;  //当前位置
     private int maxRecordNum = 0;  //最大记录个数
@@ -67,7 +67,7 @@ public class LrcUtil {
         String regex = "\\[\\d\\d:\\d\\d.\\d\\d]"; // 正则表达式
         Pattern pattern = Pattern.compile(regex);
         String lineStr;  //用于存储行数据
-        int timeTemp = 50000;
+        int timeTemp = 50000000;
         Stack<Map<Integer, String>> mapStack = new Stack<>();  //用于保存lrc存入的数据
         Stack<LrcRecord> listStack = new Stack<>();  //用于重新构造新的数据
         try {

@@ -18,8 +18,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements
         MediaPlayer.OnPreparedListener,   //实现 MediaPlayer 的 3 个的事件监听接口
@@ -27,13 +28,15 @@ public class MainActivity extends AppCompatActivity implements
         MediaPlayer.OnCompletionListener {
 
     //全局变量的定义
-    Uri mp3Uri, lrcUri;
-    TextView txtContent, beginTime, endTime;
+//    Uri mp3Uri, lrcUri;
+    String mp3Filename, lrcFilename;
+    TextView txtContent, beginTime, endTime, txtTest;
     Button btnPlay;
     MediaPlayer mediaPlayer;
     LrcRecord lrcRecord;
-
-    LrcUtil lrc = new LrcUtil();
+    LrcUtil lrcUtil;
+    Timer timer;
+    TimerTask task;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,36 +48,34 @@ public class MainActivity extends AppCompatActivity implements
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//设置屏幕直向显示
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//设置屏幕不进入休眠
 
-        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
-                getPackageName() + "/" + R.raw.welcome);
-        lrcUri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
-                getPackageName() + "/" + R.raw.panda);
+//        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
+//                getPackageName() + "/" + R.raw.welcome);
 
         //从界面布局文件中获得引用
         txtContent = findViewById(R.id.txtContent);
         beginTime = findViewById(R.id.beginTime);
         endTime = findViewById(R.id.endTime);
         btnPlay = findViewById(R.id.btnPlay);
+        txtTest = findViewById(R.id.txtTest);
 
         //打开lrc文件,并定位到第一个记录
         String path = Environment.getExternalStorageDirectory().getPath();
-        String filename = path + "/205.lrc";
-        lrc.openFile(filename);
-        lrcRecord = lrc.reLocation(0);
-
-        //修改界面布局元素的值
-        txtContent.setText(lrcRecord.text);
-        beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
-        endTime.setText(timeFromIntToString(lrcRecord.endTime));
-        btnPlay.setText(R.string.pause);
+        lrcFilename = path + "/205.lrc";
+        mp3Filename = path + "/205.mp3";
+        lrcUtil = new LrcUtil();  //全局使用的实例
+        lrcUtil.openFile(lrcFilename);
+        lrcRecord = lrcUtil.reLocation(0);
 
         //打开声音文件，做好播放准备
         mediaPlayer = new MediaPlayer();           //创建 MediaPlayer 对象
         mediaPlayer.setOnPreparedListener(this);   //设置 3 个事件监听器
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
-
         prepareMusic();
+
+        //计时器 和 界面元素设置
+        timer = new Timer();
+        recordSkip();
 
         //工具条的设置
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements
     //实现接口的三个函数=====================================================================
     @Override
     public void onPrepared(MediaPlayer mp) {
-        btnPlay.setText(R.string.play);  //按钮改"播放"
+        btnPlay.setText(R.string.play);
     }
 
     @Override
@@ -137,21 +138,22 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onPick() {  //菜单点击事件
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
-//        it.setType("audio/*");     //音乐类型
-        it.setType("file/*");     //音乐类型
+        it.setType("audio/*");     //音乐类型
+//        it.setType("file/*");
         startActivityForResult(it, 100);
     }
 
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {  //回调方法
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK) {
-            mp3Uri = convertUri(data.getData());
+//            mp3Uri = convertUri(data.getData());
 //            txtContent.setText(mp3Uri.getLastPathSegment ());
 //            txtContent.setText(data.getData().toString());
             prepareMusic();
         }
     }
 
+    //这段程序留着备用
     Uri convertUri(Uri uri) {  //将"content://"类型的Uri转换为"file://"的Uri
         if(uri.toString().substring(0, 7).equals("content")) {  //如果是以"content"开头
             String[] colName = { MediaStore.MediaColumns.DATA };    //声明要查询的字段
@@ -173,7 +175,8 @@ public class MainActivity extends AppCompatActivity implements
         btnPlay.setText(R.string.play);   //按钮改"播放"
         try {
             mediaPlayer.reset();  //复位，开始播放前都这样处理
-            mediaPlayer.setDataSource(this, mp3Uri);
+//            mediaPlayer.setDataSource(this, mp3Uri);
+            mediaPlayer.setDataSource(mp3Filename);
             mediaPlayer.prepareAsync();
         } catch (Exception e) {
             Toast.makeText(this, "错误:" + e.toString(), Toast.LENGTH_SHORT).show();
@@ -193,48 +196,53 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onMpBackward(View v) {
-//        if(!mediaPlayer.isPlaying()) return;
-//        int pos = mediaPlayer.getCurrentPosition();
-//        pos -= 10000;  //倒退 10 秒 (10000ms)
-//        if(pos <0) pos = 0;
-//        mediaPlayer.seekTo(pos);
-//
-
-
-        String text = lrc.reLocation(-1).text;
-        txtContent.setText(text);
-        //修改界面布局元素的值
-        txtContent.setText(lrcRecord.text);
-//        beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
-//        endTime.setText(timeFromIntToString(lrcRecord.endTime));
-        btnPlay.setText(R.string.pause);
+        lrcRecord = lrcUtil.reLocation(-1);
+        recordSkip();
     }
 
     public void onMpForward(View v) {
-//        if(!mediaPlayer.isPlaying()) return;
-//        int len = mediaPlayer.getDuration();
-//        int pos = mediaPlayer.getCurrentPosition();
-//        pos += 10000;  //前进 10 秒 (10000ms)
-//        if(pos > len) pos = len;
-//        mediaPlayer.seekTo(pos);
+        lrcRecord = lrcUtil.reLocation(1);
+        recordSkip();
+    }
 
-        String text = lrc.reLocation(1).text;
-        txtContent.setText(text);
-        //修改界面布局元素的值
+    private void recordSkip() {
         txtContent.setText(lrcRecord.text);
-//        beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
-//        endTime.setText(timeFromIntToString(lrcRecord.endTime));
+        beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
+        endTime.setText(timeFromIntToString(lrcRecord.endTime));
         btnPlay.setText(R.string.pause);
+
+        //启动计时器
+        if (task != null){
+            task.cancel();
+        }
+        task = new myTimerTask();
+        timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
+        String text= "延迟：" + String.valueOf(lrcRecord.endTime-lrcRecord.beginTime) + "秒";
+        txtTest.setText(text);
     }
 
     //数字时间 --> 字符串时间  例如：mm:ss.ms
     private String timeFromIntToString(int intTime) {
-        int min = intTime/1000/60;
-        int second = (intTime - min * 60 * 1000)/1000;
-        int millisecond = intTime - min * 60 * 1000 - second * 1000;
-        String strMin = String.format(Locale.CHINA,"%02d", min);
-        String strSecond = String.format(Locale.CHINA,"%02d", second);
-        String strMillisecond = String.format(Locale.CHINA,"%02d", millisecond).substring(0, 2);
-        return strMin + ":" + strSecond + "." + strMillisecond;   // 返回 mm:ss.ms
+//        int minute = intTime/1000/60;
+//        int second = (intTime - minute * 60 * 1000)/1000;
+//        int millisecond = intTime - minute * 60 * 1000 - second * 1000;
+//        String strMin = String.format(Locale.CHINA,"%02d", min);
+//        String strSecond = String.format(Locale.CHINA,"%02d", second);
+//        String strMillisecond = String.format(Locale.CHINA,"%02d", millisecond).substring(0, 2);
+//        return strMin + ":" + strSecond + "." + strMillisecond;   // 返回 mm:ss.ms
+        int millisecond = intTime % 1000;
+        intTime = intTime / 1000;
+        int second = intTime % 60;
+        intTime = intTime /60;
+        int minute = intTime % 60;
+        return String.format(Locale.CHINA,"%02d:%02d.%02d", minute, second, millisecond/10);
+    }
+
+    class myTimerTask extends TimerTask {
+        public void run() {
+            mediaPlayer.seekTo(lrcRecord.beginTime);
+        }
     }
 }
+
+
