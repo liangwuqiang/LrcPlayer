@@ -9,6 +9,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -38,23 +42,40 @@ public class MainActivity extends AppCompatActivity implements
     Timer timer;
     TimerTask task;
 
+    private DrawerLayout drawerLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         //设置屏幕不随手机旋转、以及画面直向显示
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);//设置屏幕不随手机旋转
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);//设置屏幕直向显示
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);//设置屏幕不进入休眠
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);  //显示出默认的返回图标
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);  //将默认的图标替换成菜单图标
+        }
+        navigationView.setCheckedItem(R.id.nav_call);  //设置默认选中项
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                rawerLayout.closeDrawers();  //关闭菜单栏
+                return true;  //不做其他的点击响应处理
+            }
+        });
 //        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
 //                getPackageName() + "/" + R.raw.welcome);
 
         //从界面布局文件中获得引用
         txtContent = findViewById(R.id.txtContent);
         beginTime = findViewById(R.id.beginTime);
-        endTime = findViewById(R.id.endTime);
+        endTime = findViewById(R.id.endTime);d
         btnPlay = findViewById(R.id.btnPlay);
         txtTest = findViewById(R.id.txtTest);
 
@@ -76,10 +97,33 @@ public class MainActivity extends AppCompatActivity implements
         //计时器 和 界面元素设置
         timer = new Timer();
         recordSkip();
+    }
 
-        //工具条的设置
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {  //显示菜单
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {  //菜单选择，相应的点击事件
+        switch (item.getItemId()){
+            case android.R.id.home:
+                drawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case R.id.action_settings:
+                Toast.makeText(this, "点击了设置", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.action_open:
+                Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
+                onPick();
+                break;
+            case R.id.action_delete:
+                Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
+                onPick();
+                break;
+            default:
+        }
+        return true;
     }
 
     @Override
@@ -116,25 +160,7 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-    //处理菜单点击事件================================================================
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {  //显示菜单
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {  //菜单选择，相应的点击事件
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        if (id == R.id.action_open) {
-            onPick();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     public void onPick() {  //菜单点击事件
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
