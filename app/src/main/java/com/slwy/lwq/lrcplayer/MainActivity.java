@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements
         recordSkip();
     }
 
-    public void onMpForward() {
+    public void onMpForward(View v) {
         lrcRecord = lrcUtil.reLocation(1);
         recordSkip();
     }
@@ -219,10 +219,10 @@ public class MainActivity extends AppCompatActivity implements
 
         String text= "延迟：" + String.valueOf(lrcRecord.endTime-lrcRecord.beginTime) + "秒";
         txtTest.setText(text);
-        for (int i = 0; i < 5; i++){  //循环5次
+//        for (int i = 0; i < 5; i++){  //循环5次
             timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
-        }
-        onMpForward();
+//        }
+//        onMpForward();
 
     }
 
