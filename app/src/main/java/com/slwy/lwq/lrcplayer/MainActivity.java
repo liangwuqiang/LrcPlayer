@@ -9,7 +9,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -65,8 +67,22 @@ public class MainActivity extends AppCompatActivity implements
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
-                rawerLayout.closeDrawers();  //关闭菜单栏
+                drawerLayout.closeDrawers();  //关闭菜单栏
                 return true;  //不做其他的点击响应处理
+            }
+        });
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "数据已删除", Snackbar.LENGTH_SHORT)
+                        .setAction("取消", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Toast.makeText(MainActivity.this, "数据已恢复",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }).show();
             }
         });
 //        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
@@ -75,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements
         //从界面布局文件中获得引用
         txtContent = findViewById(R.id.txtContent);
         beginTime = findViewById(R.id.beginTime);
-        endTime = findViewById(R.id.endTime);d
+        endTime = findViewById(R.id.endTime);
         btnPlay = findViewById(R.id.btnPlay);
         txtTest = findViewById(R.id.txtTest);
 
@@ -232,6 +248,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void recordSkip() {
+//        txtContent.setText(lrcRecord.getLrcText());
+//        beginTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
+//        endTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
         txtContent.setText(lrcRecord.text);
         beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
         endTime.setText(timeFromIntToString(lrcRecord.endTime));
@@ -243,9 +262,11 @@ public class MainActivity extends AppCompatActivity implements
         }
         task = new myTimerTask();
 
+//        String text= "延迟：" + String.valueOf(lrcRecord.getStopTime()-lrcRecord.getStartTime()) + "秒";
         String text= "延迟：" + String.valueOf(lrcRecord.endTime-lrcRecord.beginTime) + "秒";
         txtTest.setText(text);
 //        for (int i = 0; i < 5; i++){  //循环5次
+//            timer.schedule(task, 1000, lrcRecord.getStopTime()-lrcRecord.getStartTime());
             timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
 //        }
 //        onMpForward();
@@ -271,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements
 
     class myTimerTask extends TimerTask {
         public void run() {
+//            mediaPlayer.seekTo(lrcRecord.getStartTime());
             mediaPlayer.seekTo(lrcRecord.beginTime);
         }
     }

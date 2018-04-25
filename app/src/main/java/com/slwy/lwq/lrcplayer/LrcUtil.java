@@ -84,6 +84,10 @@ public class LrcUtil {
             while(!mapStack.empty()){  //重新构造一个新栈，中间层，后进先出
                 for (Map.Entry<Integer, String> entry : mapStack.pop().entrySet()) {
                     LrcRecord lrcRecord = new LrcRecord();
+//                    lrcRecord.setDisplay(true);
+//                    lrcRecord.setStartTime(entry.getKey());
+//                    lrcRecord.setStopTime(timeTemp);
+//                    lrcRecord.setLrcText(entry.getValue());
                     lrcRecord.display = true;
                     lrcRecord.beginTime = entry.getKey();
                     lrcRecord.endTime = timeTemp;
