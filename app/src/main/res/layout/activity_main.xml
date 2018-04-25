@@ -23,10 +23,20 @@
                 app:title="@string/app_name"/>
         </android.support.design.widget.AppBarLayout>
 
+        <TextView
+            android:id="@+id/text_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="80dp"
+            android:layout_gravity="top|center"
+            android:text="abcd"/>
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layout_margin="100dp"
+            android:layout_gravity="top|center"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"

@@ -22,7 +22,7 @@ public class LrcUtil {
 
     private int curLocation = 0;  //当前位置
     private int maxRecordNum = 0;  //最大记录个数
-    private List<LrcRecord> recordList = new ArrayList<>();
+    public List<LrcRecord> recordList = new ArrayList<>();
 
     public void openFile(String filename) {
         openLrcFile(filename);

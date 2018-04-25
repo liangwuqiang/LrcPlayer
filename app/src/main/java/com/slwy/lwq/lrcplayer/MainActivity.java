@@ -16,15 +16,22 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -45,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements
     TimerTask task;
 
     private DrawerLayout drawerLayout;
+    private List<LrcRecord> lrcRecordList = new ArrayList<>();
+    private LrcAdapter lrcAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements
                         }).show();
             }
         });
+
 //        mp3Uri = Uri.parse("android.resource://" + //默认会播放程序内的音乐文件
 //                getPackageName() + "/" + R.raw.welcome);
 
@@ -113,7 +124,30 @@ public class MainActivity extends AppCompatActivity implements
         //计时器 和 界面元素设置
         timer = new Timer();
         recordSkip();
+//        initLrc();
+        lrcRecordList = lrcUtil.recordList;
+
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+//        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+//        recyclerView.setLayoutManager(layoutManager);
+        lrcAdapter = new LrcAdapter(lrcRecordList);
+//        String[] data ={"hi","nihao","yes","no"};
+//        ArrayAdapter<String> array=new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,data);
+        recyclerView.setAdapter(lrcAdapter);
+
+        TextView textView = findViewById(R.id.text_test);
+        textView.setText(lrcAdapter.test);
     }
+
+//    private void initLrc() {
+//        lrcRecordList.clear();
+//        lrcRecordList = lrcUtil.recordList;
+//        for (int i = 0; i < 50; i++) {
+//            Random random = new Random();
+//            int index = random.nextInt(fruits.length);
+//            fruitList.add(fruits[index]);
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {  //显示菜单

@@ -14,7 +14,7 @@ public class LrcAdapter  extends RecyclerView.Adapter<LrcAdapter.ViewHolder> {
 
     private Context mContext;
 
-    private List<LrcRecord> lrcRecordList;
+    private List<LrcRecord> mLrcRecordList;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
@@ -30,7 +30,7 @@ public class LrcAdapter  extends RecyclerView.Adapter<LrcAdapter.ViewHolder> {
     }
 
     public LrcAdapter(List<LrcRecord> lrcRecordList) {
-        this.lrcRecordList = lrcRecordList;
+        mLrcRecordList = lrcRecordList;
     }
 
     @Override
@@ -44,13 +44,13 @@ public class LrcAdapter  extends RecyclerView.Adapter<LrcAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        LrcRecord lrcRecord = lrcRecordList.get(position);
+        LrcRecord lrcRecord = mLrcRecordList.get(position);
+        holder.lrcIndex.setText(String.valueOf(position));
         holder.lrcText.setText(lrcRecord.getLrcText());
-//        Glide.with(mContext).load(fruit.getImageId()).into(holder.fruitImage);
     }
 
     @Override
     public int getItemCount() {
-        return lrcRecordList.size();
+        return mLrcRecordList.size();
     }
 }
