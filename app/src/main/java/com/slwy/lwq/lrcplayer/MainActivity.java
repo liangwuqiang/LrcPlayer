@@ -248,12 +248,9 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void recordSkip() {
-//        txtContent.setText(lrcRecord.getLrcText());
-//        beginTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
-//        endTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
-        txtContent.setText(lrcRecord.text);
-        beginTime.setText(timeFromIntToString(lrcRecord.beginTime));
-        endTime.setText(timeFromIntToString(lrcRecord.endTime));
+        txtContent.setText(lrcRecord.getLrcText());
+        beginTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
+        endTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
         btnPlay.setText(R.string.pause);
 
         //启动计时器
@@ -262,13 +259,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         task = new myTimerTask();
 
-//        String text= "延迟：" + String.valueOf(lrcRecord.getStopTime()-lrcRecord.getStartTime()) + "秒";
-        String text= "延迟：" + String.valueOf(lrcRecord.endTime-lrcRecord.beginTime) + "秒";
+        String text= "延迟：" + String.valueOf(lrcRecord.getStopTime()-lrcRecord.getStartTime()) + "秒";
         txtTest.setText(text);
-//        for (int i = 0; i < 5; i++){  //循环5次
-//            timer.schedule(task, 1000, lrcRecord.getStopTime()-lrcRecord.getStartTime());
-            timer.schedule(task, 1000, lrcRecord.endTime-lrcRecord.beginTime);
-//        }
+            timer.schedule(task, 1000, lrcRecord.getStopTime()-lrcRecord.getStartTime());
 //        onMpForward();
 
     }
@@ -292,8 +285,7 @@ public class MainActivity extends AppCompatActivity implements
 
     class myTimerTask extends TimerTask {
         public void run() {
-//            mediaPlayer.seekTo(lrcRecord.getStartTime());
-            mediaPlayer.seekTo(lrcRecord.beginTime);
+            mediaPlayer.seekTo(lrcRecord.getStartTime());
         }
     }
 }
