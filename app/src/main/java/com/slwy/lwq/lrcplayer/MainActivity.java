@@ -89,11 +89,11 @@ public class MainActivity extends AppCompatActivity implements
 //                getPackageName() + "/" + R.raw.welcome);
 
         //从界面布局文件中获得引用
-        txtContent = findViewById(R.id.txtContent);
-        beginTime = findViewById(R.id.beginTime);
-        endTime = findViewById(R.id.endTime);
-        btnPlay = findViewById(R.id.btnPlay);
-        txtTest = findViewById(R.id.txtTest);
+//        txtContent = findViewById(R.id.txtContent);
+//        beginTime = findViewById(R.id.beginTime);
+//        endTime = findViewById(R.id.endTime);
+//        btnPlay = findViewById(R.id.btnPlay);
+//        txtTest = findViewById(R.id.txtTest);
 
         //打开lrc文件,并定位到第一个记录
         String path = Environment.getExternalStorageDirectory().getPath();
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onPause();
 
         if (mediaPlayer.isPlaying()) {  //如果正在播, 就暂停
-            btnPlay.setText("继续");
+//            btnPlay.setText("继续");
             mediaPlayer.pause();  //暂停播放
         }
     }
@@ -161,13 +161,13 @@ public class MainActivity extends AppCompatActivity implements
     //实现接口的三个函数=====================================================================
     @Override
     public void onPrepared(MediaPlayer mp) {
-        btnPlay.setText(R.string.play);
+//        btnPlay.setText(R.string.play);
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
         mediaPlayer.seekTo(0);
-        btnPlay.setText(R.string.play);
+//        btnPlay.setText(R.string.play);
     }
 
     @Override
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements
 
     //播放初始化, 在主界面调用 和 选定文件的回调方法中使用======================================
     void prepareMusic() {
-        btnPlay.setText(R.string.play);   //按钮改"播放"
+//        btnPlay.setText(R.string.play);   //按钮改"播放"
         try {
             mediaPlayer.reset();  //复位，开始播放前都这样处理
 //            mediaPlayer.setDataSource(this, mp3Uri);
@@ -229,11 +229,11 @@ public class MainActivity extends AppCompatActivity implements
     public void onMpPlay(View v) {  //对应于播放按钮的点击事件，ok
         if (mediaPlayer.isPlaying()) {  //正在播放时，暂停，按钮改"播放"
             mediaPlayer.pause();
-            btnPlay.setText(R.string.play);
+//            btnPlay.setText(R.string.play);
         }
         else {
             mediaPlayer.start();  //不播放时，开始播放，按钮改"暂停"
-            btnPlay.setText(R.string.pause);
+//            btnPlay.setText(R.string.pause);
         }
     }
 
@@ -248,10 +248,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void recordSkip() {
-        txtContent.setText(lrcRecord.getLrcText());
-        beginTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
-        endTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
-        btnPlay.setText(R.string.pause);
+//        txtContent.setText(lrcRecord.getLrcText());
+//        beginTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
+//        endTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
+//        btnPlay.setText(R.string.pause);
 
         //启动计时器
         if (task != null){
@@ -259,8 +259,8 @@ public class MainActivity extends AppCompatActivity implements
         }
         task = new myTimerTask();
 
-        String text= "延迟：" + String.valueOf(lrcRecord.getStopTime()-lrcRecord.getStartTime()) + "秒";
-        txtTest.setText(text);
+//        String text= "延迟：" + String.valueOf(lrcRecord.getStopTime()-lrcRecord.getStartTime()) + "秒";
+//        txtTest.setText(text);
             timer.schedule(task, 1000, lrcRecord.getStopTime()-lrcRecord.getStartTime());
 //        onMpForward();
 
