@@ -1,5 +1,11 @@
 package com.slwy.lwq.lrcplayer;
 
+import android.database.Cursor;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +14,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -15,18 +22,21 @@ import java.util.regex.Pattern;
 
 public class LrcUtil {
 
-//    样本  打开手机目录下的文件
-//    String filename = "/storage/sdcard0/205.lrcUtil";
-//    private String path = Environment.getExternalStorageDirectory().getPath();
-//    String filename = path + "/205.lrcUtil";
-
+    private int mTheLastTime;
     private int curLocation = 0;  //当前位置
     private int maxRecordNum = 0;  //最大记录个数
-    public List<LrcRecord> recordList = new ArrayList<>();
+    private List<LrcRecord> recordList = new ArrayList<>();
 
-    public void openFile(String filename) {
-        openLrcFile(filename);
+    LrcUtil(File file){
+        File mp3File = new File(Environment.getExternalStorageDirectory(), "205.mp3");
+        openMp3File(mp3File);
+
+        openLrcFile(file);
     }
+
+//    public void openFile(String filename) {
+//        openLrcFile(filename);
+//    }
 
     public LrcRecord reLocation(int inc){
         if(inc == 0){
@@ -43,11 +53,20 @@ public class LrcUtil {
         return seekTo(curLocation);
     }
 
+    private void openMp3File(File file){
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setDataSource(file.getPath());
+//            mediaPlayer.prepare();
+            mTheLastTime = mediaPlayer.getDuration();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     //以特定格式打开文件
-    private void openLrcFile(String filename){  //读取lrc文件
+    private void openLrcFile(File lrcFile){  //读取lrc文件
         try {
-            File lrcFile = new File(filename);
             FileInputStream fileInputStream = new FileInputStream(lrcFile);  //将文件导入为文件输入流
             InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream,"utf-8");
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);  //转成字节流
@@ -67,7 +86,7 @@ public class LrcUtil {
         String regex = "\\[\\d\\d:\\d\\d.\\d\\d]"; // 正则表达式
         Pattern pattern = Pattern.compile(regex);
         String lineStr;  //用于存储行数据
-        int timeTemp = 50000000;
+        int timeTemp = mTheLastTime;
         Stack<Map<Integer, String>> mapStack = new Stack<>();  //用于保存lrc存入的数据
         Stack<LrcRecord> listStack = new Stack<>();  //用于重新构造新的数据
         try {
@@ -83,11 +102,11 @@ public class LrcUtil {
             }
             while(!mapStack.empty()){  //重新构造一个新栈，中间层，后进先出
                 for (Map.Entry<Integer, String> entry : mapStack.pop().entrySet()) {
-                    boolean display = true;
+//                    boolean display = true;
                     int startTime = entry.getKey();
                     int stopTime = timeTemp;
                     String lrcText = entry.getValue();
-                    LrcRecord lrcRecord = new LrcRecord(display, startTime, stopTime, lrcText);
+                    LrcRecord lrcRecord = new LrcRecord(true, startTime, stopTime, lrcText);
                     listStack.push(lrcRecord);
                     timeTemp = entry.getKey();
                 }
@@ -115,4 +134,39 @@ public class LrcUtil {
         return recordList.get(index);
     }
 
+    //这段程序留着备用
+//    Uri convertUri(Uri uri) {  //将"content://"类型的Uri转换为"file://"的Uri
+//        if(uri.toString().substring(0, 7).equals("content")) {  //如果是以"content"开头
+//            String[] colName = { MediaStore.MediaColumns.DATA };    //声明要查询的字段
+//            Cursor cursor = getContentResolver().query(uri, colName,  //以uri进行查询
+//                    null, null, null);
+//            if (cursor != null){
+//                cursor.moveToFirst();      //移到查询结果的第一个记录
+//                uri = Uri.parse("file://" + cursor.getString(0)); //将路径转为 Uri
+//                cursor.close();
+//            }
+//        }
+//        return uri;
+//    }
+
+    //数字时间 --> 字符串时间  例如：mm:ss.ms
+    public String timeFromIntToString(int intTime) {
+//        int minute = intTime/1000/60;
+//        int second = (intTime - minute * 60 * 1000)/1000;
+//        int millisecond = intTime - minute * 60 * 1000 - second * 1000;
+//        String strMin = String.format(Locale.CHINA,"%02d", min);
+//        String strSecond = String.format(Locale.CHINA,"%02d", second);
+//        String strMillisecond = String.format(Locale.CHINA,"%02d", millisecond).substring(0, 2);
+//        return strMin + ":" + strSecond + "." + strMillisecond;   // 返回 mm:ss.ms
+        int millisecond = intTime % 1000;
+        intTime = intTime / 1000;
+        int second = intTime % 60;
+        intTime = intTime /60;
+        int minute = intTime % 60;
+        return String.format(Locale.CHINA,"%02d:%02d.%02d", minute, second, millisecond/10);
+    }
+
+    public List<LrcRecord> getRecordList(){
+        return recordList;
+    }
 }
