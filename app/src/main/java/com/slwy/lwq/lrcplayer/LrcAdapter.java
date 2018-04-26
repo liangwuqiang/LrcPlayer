@@ -13,26 +13,26 @@ import java.util.List;
 public class LrcAdapter  extends RecyclerView.Adapter<LrcAdapter.ViewHolder> {
 
     private Context mContext;
-
-    private List<LrcRecord> mLrcRecordList;
+    private List<LrcRecord> mLrcList;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
-        TextView lrcIndex;
-        TextView lrcText;
+        TextView tvLrcIndex;
+        TextView tvLrcText;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             cardView = (CardView) view;
-            lrcIndex = view.findViewById(R.id.lrc_index);
-            lrcText = view.findViewById(R.id.lrc_text);
+            tvLrcIndex = view.findViewById(R.id.lrc_index);
+            tvLrcText = view.findViewById(R.id.lrc_text);
         }
     }
 
-    public LrcAdapter(List<LrcRecord> lrcRecordList) {
-        mLrcRecordList = lrcRecordList;
+    LrcAdapter(List<LrcRecord> lrcList) {
+        mLrcList = lrcList;
     }
 
+//    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (mContext == null) {
@@ -44,13 +44,13 @@ public class LrcAdapter  extends RecyclerView.Adapter<LrcAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        LrcRecord lrcRecord = mLrcRecordList.get(position);
-        holder.lrcIndex.setText(String.valueOf(position));
-        holder.lrcText.setText(lrcRecord.getLrcText());
+        LrcRecord lrcRecord = mLrcList.get(position);
+        holder.tvLrcIndex.setText(String.valueOf(position + 1));
+        holder.tvLrcText.setText(lrcRecord.getLrcText());
     }
 
     @Override
     public int getItemCount() {
-        return mLrcRecordList.size();
+        return mLrcList.size();
     }
 }
