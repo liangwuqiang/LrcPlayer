@@ -1,11 +1,5 @@
 package com.slwy.lwq.lrcplayer;
 
-import android.database.Cursor;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,51 +11,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LrcUtil {
 
-    private int mTheLastTime;
+    private List<LrcRecord> recordList;
+    private int mTheLastTime = 0;  //结束时间，从mp3文件中获得
     private int curLocation = 0;  //当前位置
     private int maxRecordNum = 0;  //最大记录个数
-    private List<LrcRecord> recordList = new ArrayList<>();
 
-    LrcUtil(File file){
-        File mp3File = new File(Environment.getExternalStorageDirectory(), "205.mp3");
-        openMp3File(mp3File);
-
-        openLrcFile(file);
-    }
-
-//    public void openFile(String filename) {
-//        openLrcFile(filename);
-//    }
-
-    public LrcRecord reLocation(int inc){
-        if(inc == 0){
-            curLocation = 0;
-        }
-        if (inc == -1){
-            curLocation = curLocation -1;
-            if (curLocation < 0) curLocation = maxRecordNum -1 ;
-        }
-        if (inc == 1){
-            curLocation = curLocation + 1;
-            if (curLocation > maxRecordNum -1) curLocation = 0;
-        }
-        return seekTo(curLocation);
-    }
-
-    private void openMp3File(File file){
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        try {
-            mediaPlayer.setDataSource(file.getPath());
-//            mediaPlayer.prepare();
-            mTheLastTime = mediaPlayer.getDuration();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    LrcUtil(File lrcFile, int theLastTime){
+        mTheLastTime = theLastTime;
+        recordList = new ArrayList<>();
+        openLrcFile(lrcFile);
     }
 
     //以特定格式打开文件
@@ -72,10 +37,9 @@ public class LrcUtil {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);  //转成字节流
 
             readLrcFile(bufferedReader);
-
-            bufferedReader.close();
-            inputStreamReader.close();
-            fileInputStream.close();
+//            bufferedReader.close();
+//            inputStreamReader.close();
+//            fileInputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,7 +66,6 @@ public class LrcUtil {
             }
             while(!mapStack.empty()){  //重新构造一个新栈，中间层，后进先出
                 for (Map.Entry<Integer, String> entry : mapStack.pop().entrySet()) {
-//                    boolean display = true;
                     int startTime = entry.getKey();
                     int stopTime = timeTemp;
                     String lrcText = entry.getValue();
@@ -115,9 +78,24 @@ public class LrcUtil {
                 recordList.add(listStack.pop());
             }
             maxRecordNum = recordList.size();
-        } catch (IOException e) {  //异常处理
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public LrcRecord reLocation(int inc){
+        if(inc == 0){
+            curLocation = 0;
+        }
+        if (inc == -1){
+            curLocation = curLocation -1;
+            if (curLocation < 0) curLocation = maxRecordNum -1 ;
+        }
+        if (inc == 1){
+            curLocation = curLocation + 1;
+            if (curLocation > maxRecordNum -1) curLocation = 0;
+        }
+        return seekTo(curLocation);
     }
 
     //字符串时间 --> 数字时间
@@ -151,13 +129,6 @@ public class LrcUtil {
 
     //数字时间 --> 字符串时间  例如：mm:ss.ms
     public String timeFromIntToString(int intTime) {
-//        int minute = intTime/1000/60;
-//        int second = (intTime - minute * 60 * 1000)/1000;
-//        int millisecond = intTime - minute * 60 * 1000 - second * 1000;
-//        String strMin = String.format(Locale.CHINA,"%02d", min);
-//        String strSecond = String.format(Locale.CHINA,"%02d", second);
-//        String strMillisecond = String.format(Locale.CHINA,"%02d", millisecond).substring(0, 2);
-//        return strMin + ":" + strSecond + "." + strMillisecond;   // 返回 mm:ss.ms
         int millisecond = intTime % 1000;
         intTime = intTime / 1000;
         int second = intTime % 60;
@@ -166,7 +137,11 @@ public class LrcUtil {
         return String.format(Locale.CHINA,"%02d:%02d.%02d", minute, second, millisecond/10);
     }
 
-    public List<LrcRecord> getRecordList(){
+    List<LrcRecord> getRecordList() {
         return recordList;
+    }
+
+    public int getMaxRecordNum(){
+        return maxRecordNum;
     }
 }

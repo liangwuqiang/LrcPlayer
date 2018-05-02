@@ -23,34 +23,88 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  implements
+        MediaPlayer.OnPreparedListener,   //实现 MediaPlayer 的 3 个的事件监听接口
+        MediaPlayer.OnErrorListener,
+        MediaPlayer.OnCompletionListener {
 
     //全局变量的定义
-    String mp3Filename, lrcFilename;
+//    String mp3Filename, lrcFilename;
     MediaPlayer mediaPlayer;
-    LrcRecord lrcRecord;
-    LrcUtil lrcUtil;
-    Timer timer;
-    TimerTask task;
+//    LrcRecord lrcRecord;
+//    LrcUtil lrcUtil;
+//    int mStartTime;
+    int mPosition;
+//    View mView;
+    Timer loopTimer, jumpTimer;
+    MyLoopTask myLoopTask;
+    MyJumpTask myJumpTask;
 
     private DrawerLayout drawerLayout;
-    private List<LrcRecord> lrcRecordList = new ArrayList<>();
-    private Adapter lrcAdapter;
+    private List<LrcRecord> lrcRecordList;
+//    private RecyclerViewAdapter lrcRecyclerViewAdapter;
+
+    private OnRecyclerClickListener onRecyclerClickListener = new OnRecyclerClickListener() {
+        @Override
+        public void onItemClickListener(View view, int position) {
+            //这里的view就是我们点击的view  position就是点击的position
+            mPosition = position;
+            Toast.makeText(view.getContext(),"点击了 "+ (position+1) + " 行",Toast.LENGTH_SHORT).show();
+            lrcLoop(position);
+        }
+    };
+
+    private void lrcLoop(int position) {
+        mPosition = position;
+        if ( position > lrcRecordList.size()){
+            mPosition = 1;
+        }
+        int startTime = lrcRecordList.get(mPosition).getStartTime();
+        int duration = lrcRecordList.get(mPosition).getStopTime() - startTime;
+
+        if(mediaPlayer.isPlaying()){
+            mediaPlayer.pause();
+        }
+
+        if (myLoopTask != null){ myLoopTask.cancel(); }
+        myLoopTask = new MyLoopTask();
+        loopTimer.schedule(myLoopTask, 0, duration);
+
+        if (myJumpTask != null){ myJumpTask.cancel(); }
+        myJumpTask = new MyJumpTask();
+        jumpTimer.schedule(myJumpTask, duration * 3);
+    }
+
+    class MyLoopTask extends TimerTask {
+        @Override
+        public void run() {
+            int startTime = lrcRecordList.get(mPosition).getStartTime();
+            mediaPlayer.seekTo(startTime);
+            mediaPlayer.start();
+        }
+    }
+
+    class MyJumpTask extends TimerTask {
+        @Override
+        public void run() {
+            lrcLoop(mPosition + 1);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         initViews();  // 界面初始化
-        initMusic();
-        List<LrcRecord> lrcRecordList = getLrcData();
-        initRecyclerView(lrcRecordList);  // 向RecyclerView填充数据
+        initData();
     }
+
 
     private void initViews() {
         //设置屏幕不随手机旋转、以及画面直向显示
@@ -91,21 +145,33 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initMusic() {
+    private void initData() {
+        loopTimer = new Timer();
+        jumpTimer = new Timer();
+//        myTask = new MyTask();
+        mediaPlayer = new MediaPlayer();
         File mp3File = new File(Environment.getExternalStorageDirectory(), "205.mp3");
-        new MyMediaPlayer(mp3File);
-    }
-    private List<LrcRecord> getLrcData() {
-        //打开lrc文件,并定位到第一个记录
+        try {
+            mediaPlayer.setDataSource(mp3File.getPath());
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int theLastTime = mediaPlayer.getDuration();
+        mediaPlayer.setOnPreparedListener(this);   //设置 3 个事件监听器
+        mediaPlayer.setOnErrorListener(this);
+        mediaPlayer.setOnCompletionListener(this);
         File lrcFile = new File(Environment.getExternalStorageDirectory(), "205.lrc");
-        lrcUtil = new LrcUtil(lrcFile);
-        return lrcUtil.getRecordList();
+        LrcUtil lrcUtil = new LrcUtil(lrcFile, theLastTime);
+        lrcRecordList = lrcUtil.getRecordList();
+        updateRecyclerView(lrcRecordList);  // 向RecyclerView填充数据
     }
 
-    private void initRecyclerView(List<LrcRecord> list) {
+    private void updateRecyclerView(List<LrcRecord> list) {
+
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        Adapter adapter = new Adapter(list);
-        recyclerView.setAdapter(adapter);
+        RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(list, onRecyclerClickListener);
+        recyclerView.setAdapter(recyclerViewAdapter);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
     }
@@ -154,9 +220,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
     public void onPick() {  //菜单点击事件
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
         it.setType("audio/*");     //音乐类型
@@ -174,6 +237,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //实现接口的三个函数=====================================================================
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        //Todo: 准备好时
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        mediaPlayer.seekTo(0);  // 播放完成 跳到开始
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+        //Todo: 出现错误时
+        return true;
+    }
 }
 
 
