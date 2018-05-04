@@ -1,6 +1,9 @@
 package com.slwy.lwq.lrcplayer;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -17,11 +20,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private Context mContext;
     private List<LrcRecord> mLrcList;
     private OnRecyclerClickListener mOnRecyclerViewItemClickListener;
+    private int defItem = -1;
 
     //构造方法中添加自定义监听接口
     RecyclerViewAdapter(List<LrcRecord> lrcList, OnRecyclerClickListener OnRecyclerViewItemClickListener) {
         mLrcList = lrcList;
         mOnRecyclerViewItemClickListener = OnRecyclerViewItemClickListener;
+    }
+
+    void setDefSelect(int position) {
+        this.defItem = position;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -52,6 +61,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         myViewHolder.tvStartTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
         myViewHolder.tvStopTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
         myViewHolder.tvLrcText.setText(lrcRecord.getLrcText());
+        if (defItem == position) {
+            myViewHolder.tvLrcIndex.setTextColor(Color.WHITE);
+            myViewHolder.tvStartTime.setTextColor(Color.WHITE);
+            myViewHolder.tvStopTime.setTextColor(Color.WHITE);
+            myViewHolder.tvLrcText.setTextColor(Color.WHITE);
+            myViewHolder.cardView.setBackgroundResource(R.color.cardview_dark_background);
+        } else {
+            myViewHolder.tvLrcIndex.setTextColor(Color.GRAY);
+            myViewHolder.tvLrcIndex.setTextColor(Color.GRAY);
+            myViewHolder.tvStartTime.setTextColor(Color.GRAY);
+            myViewHolder.tvStopTime.setTextColor(Color.GRAY);
+            myViewHolder.tvLrcText.setTextColor(Color.BLACK);
+            myViewHolder.cardView.setBackgroundResource(R.color.cardview_light_background);
+        }
         myViewHolder.itemView.setTag(position);  //给view设置tag以作为参数传递到监听回调方法中
     }
 
