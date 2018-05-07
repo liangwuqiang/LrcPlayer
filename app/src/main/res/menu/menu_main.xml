@@ -7,7 +7,7 @@
         android:title="@string/actionSettings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_open"
+        android:id="@+id/action_backup"
         android:icon="@drawable/ic_backup"
         android:title="@string/actionOpenFile"
         app:showAsAction="always" />
@@ -16,4 +16,12 @@
         android:icon="@drawable/ic_delete"
         android:title="@string/actionDelete"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_open"
+        android:title="@string/actionOpen"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_play"
+        android:title="@string/actionPlay"
+        app:showAsAction="never"/>
 </menu>

@@ -13,4 +13,6 @@
     <string name="actionSettings">设置</string>
     <string name="actionOpenFile">打开文件</string>
     <string name="actionDelete">删除</string>
+    <string name="actionPlay">自动播放</string>
+    <string name="actionOpen">打开文件</string>
 </resources>

@@ -9,7 +9,6 @@ import android.os.Environment;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -39,76 +38,22 @@ public class MainActivity extends AppCompatActivity  implements
     private MediaPlayer mediaPlayer;
     private int mPosition = 0;
     private Timer loopTimer, jumpTimer;
-    private MyLoopTask myLoopTask;
-    private MyJumpTask myJumpTask;
+    private LoopTask loopTask;
+    private JumpTask jumpTask;
     private BottomSheetBehavior bottomSheetBehavior;
     private TextView bottomSheetHeading;
     private DrawerLayout drawerLayout;
     private List<LrcRecord> lrcRecordList;
-    private  int sleepTime;
-    RecyclerViewAdapter recyclerViewAdapter;
+    private int sleepTime = 1000;
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private NavigationView navigationView;
+    private FloatingActionButton fab;
+    private int loopTimes = 3;
 
-    private OnRecyclerClickListener onRecyclerClickListener = new OnRecyclerClickListener() {
-        @Override
-        public void onItemClickListener(View view, int position) {
-            //这里的view就是我们点击的view  position就是点击的position
-//            mPosition = position;
-//            Toast.makeText(view.getContext(),"点击: " + (position + 1),Toast.LENGTH_SHORT).show();
-            lrcLoop(position);
-        }
-    };
-
-    private void lrcLoop(int position) {
-        mPosition = position;
-        if ( position > lrcRecordList.size()){
-            mPosition = 1;
-        }
-        int startTime = lrcRecordList.get(mPosition).getStartTime();
-        int duration = lrcRecordList.get(mPosition).getStopTime() - startTime;
-        recyclerViewAdapter.setDefSelect(mPosition);
-
-        //  定时器1，监听句子循环
-        if (myLoopTask != null){ myLoopTask.cancel(); }
-        myLoopTask = new MyLoopTask();
-        loopTimer.schedule(myLoopTask, 0, duration + sleepTime);
-        //定时器2，监听是否跳转
-        // 加入上面的setDefSelect之后，以下代码不能正常运行，不知道是啥原因。手动点击跳转没有问题。
-//        if (myJumpTask != null){ myJumpTask.cancel(); }
-//        myJumpTask = new MyJumpTask();
-//        jumpTimer.schedule(myJumpTask, (duration + sleepTime) * 3);
-    }
-
-    class MyLoopTask extends TimerTask {
-        @Override
-        public void run() {
-            int startTime = lrcRecordList.get(mPosition).getStartTime();
-            if(mediaPlayer.isPlaying()){
-                mediaPlayer.pause();
-                try{
-                    Thread.sleep(sleepTime);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            mediaPlayer.seekTo(startTime);
-            mediaPlayer.start();
-        }
-    }
-
-    class MyJumpTask extends TimerTask {
-        @Override
-        public void run() {
-            lrcLoop(mPosition + 1);
-        }
-    }
-
-    NavigationView navigationView;
-    FloatingActionButton fab;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         initViews();  // 界面初始化
         initData();
         initListener();
@@ -141,7 +86,7 @@ public class MainActivity extends AppCompatActivity  implements
         loopTimer = new Timer();
         jumpTimer = new Timer();
         sleepTime = 1000;
-//        myTask = new MyTask();
+        loopTimes =3;
         mediaPlayer = new MediaPlayer();
         File mp3File = new File(Environment.getExternalStorageDirectory(), "205.mp3");
         try {
@@ -156,7 +101,7 @@ public class MainActivity extends AppCompatActivity  implements
         LrcUtil lrcUtil = new LrcUtil(lrcFile, theLastTime);
         lrcRecordList = lrcUtil.getRecordList();
         updateRecyclerView(lrcRecordList);  // 向RecyclerView填充数据
-        lrcLoop(mPosition);
+//        lrcLoop(mPosition);
     }
 
     private void updateRecyclerView(List<LrcRecord> list) {
@@ -236,13 +181,96 @@ public class MainActivity extends AppCompatActivity  implements
         mediaPlayer.setOnCompletionListener(this);
     }
 
+    //覆写主Activity的其它方法============完成
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mediaPlayer.isPlaying()) {  //如果正在播, 就暂停
+            mediaPlayer.pause();  //暂停播放
+        }
+    }
 
+    @Override
+    protected void onDestroy() {
+        mediaPlayer.release();  //释放 MediaPlayer 对象
+        super.onDestroy();
+    }
 
+    //实现接口的三个方法==============================完成
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        mediaPlayer.seekTo(0);
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
+        return true;
+    }
+
+    //监听RecyclerView项的点击======================完成
+    private OnRecyclerClickListener onRecyclerClickListener = new OnRecyclerClickListener() {
+        @Override
+        public void onItemClickListener(View view, int position) {
+            recyclerViewAdapter.setDefSelect(position);  //高亮显示选择项
+            lrcPlay(position);
+        }
+    };
+
+    public void lrcPlay(int position) {
+        //变量赋值
+        mPosition = position;
+        int startTime = lrcRecordList.get(position).getStartTime();
+        int stopTime = lrcRecordList.get(position).getStopTime();
+        int duration = stopTime - startTime;
+        //单个句子定时循环
+        if (loopTask != null){ loopTask.cancel(); }  //清除原有的任务
+        loopTask = new LoopTask();
+        loopTimer.schedule(loopTask, 0, duration + sleepTime);  //循环任务
+        //句子之间定时跳转
+        if (jumpTask != null){ jumpTask.cancel(); }
+        jumpTask = new JumpTask();
+        jumpTimer.schedule(jumpTask, (duration + sleepTime) * loopTimes);
+    }
+
+    class LoopTask extends TimerTask{  //单个句子的循环任务
+        @Override
+        public void run() {
+            int startTime = lrcRecordList.get(mPosition).getStartTime();  //起始时间
+            if(mediaPlayer.isPlaying()){  //如果正在播放 就先暂停
+                mediaPlayer.pause();
+            }
+            try{  //句间延迟
+                Thread.sleep(sleepTime);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mediaPlayer.seekTo(startTime);  //声音定位
+            mediaPlayer.start();  //开始播放
+        }
+    }
+
+    class JumpTask extends TimerTask {  //句子之间的跳转任务
+        @Override
+        public void run() {
+            int position = mPosition + 1;
+            if ( position >= lrcRecordList.size()){
+                position = 0;
+            }
+            lrcPlay(position);
+        }
+    }
+
+    //菜单及其点击事件========================没完成
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {  //显示菜单
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {  //菜单选择，相应的点击事件
         switch (item.getItemId()){
@@ -254,38 +282,20 @@ public class MainActivity extends AppCompatActivity  implements
                 break;
             case R.id.action_open:
                 Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
-                onPick();
+                onOpenFile();
                 break;
             case R.id.action_delete:
                 Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
-                onPick();
+                onOpenFile();
                 break;
             default:
         }
         return true;
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        if (mediaPlayer.isPlaying()) {  //如果正在播, 就暂停
-//            btnPlay.setText("继续");
-            mediaPlayer.pause();  //暂停播放
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        mediaPlayer.release();  //释放 MediaPlayer 对象
-        super.onDestroy();
-    }
-
-
-    public void onPick() {  //菜单点击事件
+    public void onOpenFile() {  //打开文件浏览器
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
         it.setType("audio/*");     //音乐类型
-//        it.setType("file/*");
         startActivityForResult(it, 100);
     }
 
@@ -299,22 +309,8 @@ public class MainActivity extends AppCompatActivity  implements
         }
     }
 
-    //实现接口的三个函数=====================================================================
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        //Todo: 准备好时
-    }
+    //结束
 
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        mediaPlayer.seekTo(0);  // 播放完成 跳到开始
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int what, int extra) {
-        //Todo: 出现错误时
-        return true;
-    }
 }
 
 
