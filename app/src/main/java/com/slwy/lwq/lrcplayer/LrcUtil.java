@@ -23,9 +23,10 @@ public class LrcUtil {
     private int curLocation = 0;  //当前位置
     private int maxRecordNum = 0;  //最大记录个数
 
-    LrcUtil(File lrcFile, int theLastTime){
+    LrcUtil(String lrcFilePath, int theLastTime){
         mTheLastTime = theLastTime;
         recordList = new ArrayList<>();
+        File lrcFile = new File(lrcFilePath);
         openLrcFile(lrcFile);
     }
 

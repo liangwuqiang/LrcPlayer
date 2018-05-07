@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.BottomSheetBehavior;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity  implements
     private NavigationView navigationView;
     private FloatingActionButton fab;
     private int loopTimes = 3;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,10 @@ public class MainActivity extends AppCompatActivity  implements
         //底部表单
         bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheetLayout));
         bottomSheetHeading = findViewById(R.id.bottomSheetHeading);
+
+        recyclerView = findViewById(R.id.recycler_view);  //获取列表实例
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);  //创建线性布局
+        recyclerView.setLayoutManager(layoutManager);  //设置列表的布局
     }
 
     private void initData() {
@@ -88,28 +94,29 @@ public class MainActivity extends AppCompatActivity  implements
         sleepTime = 1000;
         loopTimes =3;
         mediaPlayer = new MediaPlayer();
-        File mp3File = new File(Environment.getExternalStorageDirectory(), "205.mp3");
+        String mp3Filename = "/205.mp3";  // 初始的设置
+        Uri mp3Uri = Uri.parse("file://" + Environment.getExternalStorageDirectory() + mp3Filename);
+        openFileForPrepare(mp3Uri);
+    }
+
+    private void openFileForPrepare(Uri mp3Uri) {
+        //打开声音文件
         try {
-            mediaPlayer.setDataSource(mp3File.getPath());
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(mp3Uri.getPath());
             mediaPlayer.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
         int theLastTime = mediaPlayer.getDuration();
-
-        File lrcFile = new File(Environment.getExternalStorageDirectory(), "205.lrc");
-        LrcUtil lrcUtil = new LrcUtil(lrcFile, theLastTime);
+        //打开字幕文件
+        String lrcFilePath =  mp3Uri.getPath().replace(".mp3", ".lrc");
+        LrcUtil lrcUtil = new LrcUtil(lrcFilePath, theLastTime);
+        //获取数据
         lrcRecordList = lrcUtil.getRecordList();
-        updateRecyclerView(lrcRecordList);  // 向RecyclerView填充数据
-//        lrcLoop(mPosition);
-    }
-
-    private void updateRecyclerView(List<LrcRecord> list) {
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        recyclerViewAdapter = new RecyclerViewAdapter(list, onRecyclerClickListener);
+        //更新列表
+        recyclerViewAdapter = new RecyclerViewAdapter(lrcRecordList, onRecyclerClickListener);
         recyclerView.setAdapter(recyclerViewAdapter);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
     }
 
     private void initListener() {
@@ -281,7 +288,7 @@ public class MainActivity extends AppCompatActivity  implements
                 Toast.makeText(this, "点击了设置", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.action_open:
-                Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
                 onOpenFile();
                 break;
             case R.id.action_delete:
@@ -294,6 +301,7 @@ public class MainActivity extends AppCompatActivity  implements
     }
 
     public void onOpenFile() {  //打开文件浏览器
+        mediaPlayer.reset();  //关闭正在播放的声音
         Intent it = new Intent(Intent.ACTION_GET_CONTENT);
         it.setType("audio/*");     //音乐类型
         startActivityForResult(it, 100);
@@ -302,10 +310,8 @@ public class MainActivity extends AppCompatActivity  implements
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {  //回调方法
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK) {
-//            mp3Uri = convertUri(data.getData());
-//            txtContent.setText(mp3Uri.getLastPathSegment ());
-//            txtContent.setText(data.getData().toString());
-//            prepareMusic();
+            Uri mp3Uri = data.getData();
+            openFileForPrepare(mp3Uri);
         }
     }
 
