@@ -39,6 +39,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             mContext = parent.getContext();
         }
         View view = LayoutInflater.from(mContext).inflate(R.layout.lrc_item, parent, false);
+//        View view = LayoutInflater.from(mContext).inflate(R.layout.lrc_item, null);
 //        final ViewHolder holder = new ViewHolder(view);
 //        final MyMediaPlayer myMediaPlayer = new MyMediaPlayer();
 //        holder.cardView.setOnClickListener(new View.OnClickListener() {
@@ -56,11 +57,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(MyViewHolder myViewHolder, int position) {
+        //从列表中获取单条记录
         LrcRecord lrcRecord = mLrcList.get(position);
+        //对控件赋值
         myViewHolder.tvLrcIndex.setText(String.valueOf(position + 1));
         myViewHolder.tvStartTime.setText(timeFromIntToString(lrcRecord.getStartTime()));
         myViewHolder.tvStopTime.setText(timeFromIntToString(lrcRecord.getStopTime()));
         myViewHolder.tvLrcText.setText(lrcRecord.getLrcText());
+        //更改控件的颜色，特别是对选定控件
         if (defItem == position) {
             myViewHolder.tvLrcIndex.setTextColor(Color.WHITE);
             myViewHolder.tvStartTime.setTextColor(Color.WHITE);
@@ -75,6 +79,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             myViewHolder.tvLrcText.setTextColor(Color.BLACK);
             myViewHolder.cardView.setBackgroundResource(R.color.cardview_light_background);
         }
+        //这句不知道啥意思，回头再查
         myViewHolder.itemView.setTag(position);  //给view设置tag以作为参数传递到监听回调方法中
     }
 

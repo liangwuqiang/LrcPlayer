@@ -230,6 +230,8 @@ public class MainActivity extends AppCompatActivity  implements
     public void lrcPlay(int position) {
         //变量赋值
         mPosition = position;
+//        recyclerView.scrollToPosition(position);
+//        recyclerViewAdapter.notifyDataSetChanged();
         int startTime = lrcRecordList.get(position).getStartTime();
         int stopTime = lrcRecordList.get(position).getStopTime();
         int duration = stopTime - startTime;
@@ -264,7 +266,7 @@ public class MainActivity extends AppCompatActivity  implements
         @Override
         public void run() {
             int position = mPosition + 1;
-            if ( position >= lrcRecordList.size()){
+            if(position >= lrcRecordList.size()){
                 position = 0;
             }
             lrcPlay(position);
@@ -292,7 +294,7 @@ public class MainActivity extends AppCompatActivity  implements
                 onOpenFile();
                 break;
             case R.id.action_delete:
-                Toast.makeText(this, "点击了打开", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "点击了删除", Toast.LENGTH_SHORT).show();
                 onOpenFile();
                 break;
             default:
